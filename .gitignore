@@ -1,0 +1,27 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment / secrets
+.env
+
+# Editors & OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# NOTE: data/ is deliberately NOT ignored. The dotaconstants dumps are committed
+# so the repo pins the exact patch the answers and tests were verified against.
+# Revisit in Step 2 once we see how large the dumps actually are.

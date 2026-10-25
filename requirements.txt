@@ -1,0 +1,9 @@
+# Dota GPT dependencies.
+# Compatible-release pins (~=) allow patch updates but not breaking minor bumps.
+# After the first install, run:  pip freeze > requirements.lock.txt
+# to capture exact versions for reproducibility.
+
+requests~=2.32      # HTTP - fetching the dotaconstants JSON dumps (Step 2)
+ollama~=0.4         # client for the local Ollama server + its tool-calling API (Step 4)
+pydantic~=2.9       # typed models for ability/hero data, so bad data fails loudly
+pytest~=8.3         # tests
