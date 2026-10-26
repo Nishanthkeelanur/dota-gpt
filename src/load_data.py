@@ -194,3 +194,24 @@ def _report() -> None:
 
 if __name__ == "__main__":
     _report()
+
+
+def source_commit() -> dict:
+    """Provenance of the dumps, read from data/SOURCE.md.
+
+    Every factual tool result quotes this, because the dumps carry no patch
+    stamp of their own -- see data/SOURCE.md for why patch.json is only a
+    lower bound.
+    """
+    import re
+
+    path = DATA_DIR / "SOURCE.md"
+    if not path.exists():
+        return {"commit": None, "commit_date": None}
+    text = path.read_text(encoding="utf-8")
+    sha = re.search(r"`([0-9a-f]{40})`", text)
+    date = re.search(r"Commit date \| (\S+)", text)
+    return {
+        "commit": sha.group(1)[:8] if sha else None,
+        "commit_date": date.group(1) if date else None,
+    }

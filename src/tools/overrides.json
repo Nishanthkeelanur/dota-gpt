@@ -1,0 +1,102 @@
+{
+  "_README": [
+    "HUMAN-CURATED VALUES. NOT FROM THE PATCH DUMPS.",
+    "",
+    "These fill gaps where odota/dotaconstants has no value for a field but the",
+    "question is one a player would actually ask. Every tool result built from",
+    "this file is tagged source='curated', and the Step 4 system prompt must say",
+    "so out loud, because CLAUDE.md section 8 says factual answers come from",
+    "tool results reading real data -- and these do not.",
+    "",
+    "Values below were entered by Claude from model memory on 2026-10-26 and are",
+    "PENDING HUMAN REVIEW. 'confidence' marks where to look hardest. Several are",
+    "genuinely nuanced: spell immunity blocks debuff application but not physical",
+    "damage or forced movement, so a bare yes/no is lossy -- hence 'partial'.",
+    "",
+    "Allowed values: yes | no | partial | n/a",
+    "Scope: bkbpierce only. dispellable is missing on 333 abilities and dmg_type",
+    "on 377 -- far too many to curate without rewriting the dataset from memory."
+  ],
+  "bkbpierce": {
+    "kunkka_tidebringer": {
+      "value": "yes",
+      "confidence": "high",
+      "note": "Cleave is physical attack damage. Spell immunity does not reduce physical damage."
+    },
+    "monkey_king_wukongs_command": {
+      "value": "yes",
+      "confidence": "medium",
+      "note": "Soldiers deal physical attack damage, which spell immunity does not block."
+    },
+    "mars_gods_rebuke": {
+      "value": "yes",
+      "confidence": "medium",
+      "note": "Physical critical strike. The knockback is forced movement, also not blocked."
+    },
+    "earthshaker_enchant_totem": {
+      "value": "yes",
+      "confidence": "medium",
+      "note": "Bonus damage is applied to Earthshaker's own attack, so it lands as physical damage."
+    },
+    "furion_sprout": {
+      "value": "yes",
+      "confidence": "medium",
+      "note": "Trees are terrain, not a debuff, so a spell-immune unit is still physically trapped. Any damage component would still be blocked."
+    },
+    "hoodwink_bushwhack": {
+      "value": "no",
+      "confidence": "medium",
+      "note": "Stun and damage-over-time are debuffs, blocked by spell immunity."
+    },
+    "venomancer_snakebite": {
+      "value": "no",
+      "confidence": "medium",
+      "note": "Magical damage and a toxin debuff; both blocked."
+    },
+    "necrolyte_death_pulse": {
+      "value": "no",
+      "confidence": "medium",
+      "note": "Magical damage to enemies. The ally heal is unaffected, being friendly."
+    },
+    "abaddon_death_coil": {
+      "value": "no",
+      "confidence": "medium",
+      "note": "Magical damage. Field is an empty list in the dump, not merely absent."
+    },
+    "spectre_spectral_dagger": {
+      "value": "no",
+      "confidence": "medium",
+      "note": "Magical damage and movement slow. The Shadow Path itself still appears."
+    },
+    "terrorblade_terror_wave": {
+      "value": "no",
+      "confidence": "low",
+      "note": "Fear is a debuff, so it should be blocked. Newer ability and I am less sure of its current behaviour."
+    },
+    "tiny_toss": {
+      "value": "partial",
+      "confidence": "low",
+      "note": "Forced movement is not blocked, so a spell-immune unit can still be grabbed and thrown, but the magical landing damage is blocked. A bare yes/no misrepresents this."
+    },
+    "phantom_assassin_stifling_dagger": {
+      "value": "partial",
+      "confidence": "low",
+      "note": "Physical damage still lands; the movement slow does not apply. Verify before trusting."
+    },
+    "sandking_scorpion_strike": {
+      "value": "partial",
+      "confidence": "low",
+      "note": "Displayed as Stinger. I am unsure of the current damage type and debuff split -- treat as unverified."
+    },
+    "antimage_counterspell": {
+      "value": "n/a",
+      "confidence": "low",
+      "note": "A self-targeted shell that blocks and reflects incoming targeted spells. 'Does it pierce spell immunity' is not a well-formed question about it."
+    },
+    "doom_bringer_devour": {
+      "value": "n/a",
+      "confidence": "medium",
+      "note": "Targets enemy or neutral creeps only, never heroes, so BKB never applies."
+    }
+  }
+}
