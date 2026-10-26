@@ -137,6 +137,29 @@ class Index:
         q = _norm(ALIASES.get(q, q))
         out: list[dict] = []
 
+        # Internal keys resolve too. The model sees keys like enigma_black_hole
+        # and lotus_orb in earlier tool results and will sometimes pass one
+        # back; treating that as "not found" produced a spurious miss.
+        raw_key = query.strip()
+        if raw_key in self.data["abilities"] and raw_key in self.real:
+            return [
+                {
+                    "kind": "ability",
+                    "key": raw_key,
+                    "dname": self.data["abilities"][raw_key].get("dname"),
+                    "hero": self.owner.get(raw_key),
+                }
+            ]
+        if raw_key in self.data["items"] and not raw_key.startswith("recipe_"):
+            return [
+                {
+                    "kind": "item",
+                    "key": raw_key,
+                    "dname": self.data["items"][raw_key].get("dname"),
+                    "hero": None,
+                }
+            ]
+
         for key in self.ability_by_name.get(q, []):
             out.append(
                 {
@@ -174,15 +197,25 @@ class Index:
             return out
         return self._fuzzy(q)
 
+    MIN_FUZZY = 4
+
     def _fuzzy(self, q: str) -> list[dict]:
-        """Substring fallback. Deliberately dumb and deliberately last."""
+        """Substring fallback. Deliberately dumb and deliberately last.
+
+        Only matches the query INSIDE a real name, never the reverse. The
+        reverse direction ("name in q") made any short real name match a
+        longer invented one -- "Chrono Sphere of Doom" resolved as Doom --
+        which turns a nonexistent ability into a confident wrong answer.
+        """
+        if len(q) < self.MIN_FUZZY:
+            return []
         out = []
         for table, kind in (
             (self.ability_by_name, "ability"),
             (self.item_by_name, "item"),
         ):
             for name, keys in table.items():
-                if q and (q in name or name in q):
+                if q in name:
                     for key in keys:
                         out.append(
                             {

@@ -3,29 +3,34 @@
 A Dota 2 assistant that answers spell and mechanic interaction questions by
 looking up real game data, not by guessing from model memory.
 
-Ask it something like *"Does Black Hole go through BKB?"* and a local LLM answers
-by calling Python functions that read actual Dota ability data — and tells you
-which patch that data came from.
+```
+$ python -m src.agent.cli "Does Enigma's Black Hole go through BKB?"
+Dota GPT -- model qwen2.5:7b, data from dotaconstants commit 5c0242df (2026-10-11)
 
-## Why
+Yes, Enigma's Black Hole goes through BKB as of dotaconstants commit
+5c0242df, 2026-10-11.
+```
 
-Dota patches constantly, and LLMs are confidently wrong about mechanics. So the
-model never answers from memory here: every factual claim comes from a tool
-result, and the code does the maths rather than the LLM.
+A local LLM parses the question and phrases the answer. Every factual claim
+comes from a Python function reading the real ability data, and the answer
+names the data it used.
 
-## Status
+## Why it works this way
 
-🚧 Early development. Step 1 of 5 — project skeleton only. Nothing works yet.
+Dota patches constantly and LLMs are confidently wrong about mechanics. So the
+model is never allowed to answer from its own knowledge:
 
-- [x] Step 1 — Project setup
-- [ ] Step 2 — Game data (odota/dotaconstants)
-- [ ] Step 3 — Lookup tools
-- [ ] Step 4 — Ollama tool-calling agent
-- [ ] Step 5 — Known-answer test set
+- **Facts come from tools, not weights.** The model emits a function name and
+  arguments; the code runs the lookup and hands back the result.
+- **Code does the maths.** Dispel-strength verdicts are computed in Python.
+  The model only phrases them.
+- **Absence means "not sure", never "no".** The upstream data annotates
+  spell immunity on only 65% of hero abilities, so a missing field returns
+  `unknown` and the assistant says it does not know.
+- **If it skips a tool, the answer is thrown away.** One reminder, one retry,
+  then it refuses rather than answer from memory.
 
 ## Setup
-
-> Not usable yet — these steps will work from Step 4 onward.
 
 Requires Python 3.11+ and [Ollama](https://ollama.com).
 
@@ -38,12 +43,22 @@ py -3.12 -m venv .venv
 # source .venv/bin/activate   # macOS / Linux
 
 pip install -r requirements.txt
-ollama pull qwen2.5:7b
+ollama pull qwen2.5:7b        # ~4.7 GB, once
 ```
+
+The game data is committed to `data/`, so there is nothing else to fetch.
 
 ## Usage
 
-_To be written once the CLI exists (Step 4)._
+```bash
+python -m src.agent.cli                                  # interactive
+python -m src.agent.cli "Does Euls dispel Ice Path?"     # one-shot
+python -m src.agent.cli --show-tools "Does BH pierce?"   # audit the lookups
+python -m src.agent.cli --model qwen3 "..."              # different model
+```
+
+`--show-tools` prints every tool call and its raw result. That is the switch
+that proves an answer came from the data rather than the model.
 
 ## Tests
 
@@ -51,7 +66,35 @@ _To be written once the CLI exists (Step 4)._
 pytest
 ```
 
+49 tests. The agent loop is tested against a scripted fake model, so the suite
+runs in under a second and does not need Ollama.
+
+## Data
+
+`data/` holds five JSON dumps from
+[odota/dotaconstants](https://github.com/odota/dotaconstants), pinned to one
+commit. See `data/SOURCE.md` for the commit, the refresh procedure, and why
+the assistant quotes a commit rather than a patch number.
+
+A field-coverage report:
+
+```bash
+python -m src.load_data
+```
+
+## Layout
+
+```
+data/              five dotaconstants dumps + SOURCE.md provenance
+src/load_data.py   loads and normalises the JSON
+src/tools/         the lookup functions the LLM may call
+  names.py         name resolution and the alias map (BKB, PL, Euls...)
+  mechanics.py     the six lookups, each tagging its own provenance
+  overrides.json   16 hand-curated values, flagged as such at point of use
+src/agent/         Ollama client, tool schemas, system prompt, CLI
+tests/             49 tests
+```
+
 ## Tech
 
-Python 3.12 · Ollama (`qwen2.5:7b`) · pydantic · pytest · data from
-[odota/dotaconstants](https://github.com/odota/dotaconstants)
+Python 3.12 · Ollama (`qwen2.5:7b`) · pydantic · pytest

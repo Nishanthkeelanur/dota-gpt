@@ -220,3 +220,32 @@ def test_hero_ability_list_excludes_placeholders():
     assert "Black Hole" in names
     assert all(n for n in names)
     assert "generic_hidden" not in [a["key"] for a in m["abilities"]]
+
+
+# --- resolver hardening (found by the live model in Step 4) ----------------
+
+
+@pytest.mark.parametrize(
+    "query,expected",
+    [
+        ("lotus_orb", ["lotus_orb"]),
+        ("enigma_black_hole", ["enigma_black_hole"]),
+        ("Black Hole", ["enigma_black_hole"]),
+    ],
+)
+def test_internal_keys_resolve_too(query, expected):
+    """The live model passes keys it saw in earlier tool results."""
+    assert [m["key"] for m in get_ability(query)["matches"]] == expected
+
+
+def test_recipe_keys_do_not_resolve_even_when_given_exactly():
+    assert get_ability("recipe_lotus_orb")["found"] is False
+
+
+@pytest.mark.parametrize(
+    "query", ["Chrono Sphere of Doom", "Black Hole of Calcutta", "xyz"]
+)
+def test_invented_names_are_not_found(query):
+    """Fuzzy matching must not resolve a real short name inside an invented
+    longer one -- that turns a nonexistent ability into a confident answer."""
+    assert get_ability(query)["found"] is False
